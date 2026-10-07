@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="keywords" content="Antonio Pereira de Souza Junior, Aplicativo Criador de Tutoriais, tutorial, passo a passo, imagens, vídeo">
+<meta name="author" content="Antônio Pereira de Souza Junior">
+<title>Aplicativo Criador de Tutoriais</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;color:#fff;font-family:Inter,system-ui,sans-serif;padding-bottom:40px}
+.wrap{max-width:900px;margin:0 auto;padding:18px 16px 60px}
+h1{color:#22d3ee;font-size:1.6rem;margin-bottom:4px}
+.sub{color:#94a3b8;font-size:.9rem;margin-bottom:18px}
+.view{display:none}
+.view.on{display:block}
+
+.topbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.topbar button{background:#1e293b;border:1px solid #334155;color:#e2e8f0;border-radius:12px;padding:9px 14px;font-size:.85rem;cursor:pointer}
+.topbar button:hover{border-color:#22d3ee}
+.topbar button.primary{background:linear-gradient(to right,#2563eb,#06b6d4);border:none;font-weight:700;color:#fff}
+
+.viewhead{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.viewhead button.back{background:#1e293b;border:1px solid #334155;color:#e2e8f0;border-radius:10px;padding:8px 12px;cursor:pointer}
+.viewhead div b{display:block;font-size:1.15rem}
+.viewhead div small{color:#94a3b8}
+
+.grid{display:grid;gap:14px}
+.sw-card{background:rgba(30,41,59,.9);border:1px solid #334155;border-radius:18px;overflow:hidden}
+.sw-card-top{display:flex;gap:12px;padding:16px;cursor:pointer}
+.sw-icon{width:52px;height:52px;border-radius:12px;background:#0f172a;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;overflow:hidden}
+.sw-icon img{width:100%;height:100%;object-fit:contain}
+.sw-info{min-width:0}
+.sw-info b{display:block;font-size:1.02rem}
+.sw-info small{color:#64748b}
+.sw-info p{color:#94a3b8;font-size:.85rem;margin:4px 0}
+.chip{display:inline-block;background:#0f172a;border:1px solid #334155;border-radius:999px;padding:2px 10px;font-size:.72rem;color:#22d3ee}
+.sw-card-actions{display:flex;gap:8px;border-top:1px solid #334155;padding:10px 16px}
+.sw-card-actions button{flex:1;background:#0f172a;border:1px solid #334155;color:#e2e8f0;border-radius:10px;padding:8px;font-size:.8rem;cursor:pointer}
+.sw-card-actions button.danger{color:#fca5a5}
+
+.addbtn{display:block;width:100%;background:linear-gradient(to right,#2563eb,#06b6d4);border:none;color:#fff;font-weight:700;border-radius:14px;padding:13px;margin-bottom:18px;cursor:pointer}
+
+.row{display:flex;align-items:flex-start;gap:10px;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.row .num{background:#0f172a;border:1px solid #334155;color:#22d3ee;border-radius:50%;width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;margin-top:4px}
+.rowtxt{flex:1;min-width:0;cursor:pointer}
+.row.imgrow .rowtxt{cursor:default}
+.rowtxt small{display:block;color:#64748b;font-size:.72rem;margin-top:3px}
+.rowbtns{display:flex;gap:4px;flex-shrink:0}
+.rowbtns button{background:#0f172a;border:1px solid #334155;color:#e2e8f0;border-radius:8px;width:30px;height:30px;font-size:.8rem;cursor:pointer}
+.rowbtns button.danger{color:#fca5a5}
+.thumb{width:40px;height:40px;border-radius:8px;background:#0f172a;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:1.1rem}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.caption,.insttxt{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;padding:7px 9px;font-size:.85rem;font-family:inherit}
+.insttxt{resize:vertical}
+.vazio{color:#64748b;font-size:.88rem;padding:14px 2px}
+
+.sectionhead{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+.sectionhead h3{font-size:1.02rem;color:#e2e8f0}
+.sectionhead button{background:#1e293b;border:1px solid #334155;color:#22d3ee;border-radius:10px;padding:8px 12px;font-size:.82rem;cursor:pointer}
+
+.overlay{position:fixed;inset:0;background:rgba(2,6,23,.7);display:none;align-items:flex-end;justify-content:center;z-index:30}
+.overlay.on{display:flex}
+.modal{background:#0f172a;border-top:1px solid #334155;width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:20px;max-height:85vh;overflow:auto}
+.modal h3{color:#22d3ee;margin-bottom:12px}
+.modal label{display:block;font-size:.78rem;color:#94a3b8;margin:12px 0 5px;font-weight:600}
+.modal input[type=text]{width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#fff;padding:11px 12px;font-size:.92rem}
+.filepick{display:flex;align-items:center;gap:10px;background:#1e293b;border:1px dashed #334155;border-radius:10px;padding:11px;font-size:.85rem;color:#94a3b8;cursor:pointer}
+.filepick input{display:none}
+.modal .save{display:block;width:100%;margin-top:16px;background:linear-gradient(to right,#2563eb,#06b6d4);border:none;color:#fff;font-weight:700;border-radius:12px;padding:12px;cursor:pointer}
+.modal p{font-size:.88rem;line-height:1.6;color:#cbd5e1;margin-bottom:8px}
+.modal ul{padding-left:18px;margin-bottom:10px}
+.modal li{font-size:.86rem;line-height:1.6;color:#cbd5e1;margin-bottom:6px}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1e293b;border:1px solid #334155;color:#fff;padding:11px 18px;border-radius:999px;font-size:.84rem;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.toast.erro{border-color:#f87171;color:#fecaca}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>🗳️ Aplicativo CriaTutor - Criador de Tutoriais Online</h1>
+  <p class="sub">Monte o pacote index.html + style.css + script.js do guia de contingência, com seus próprios dados.</p>
+
+  <div class="topbar">
+    <button id="btnAbrirScript">📂 Abrir script.js existente</button>
+    <input type="file" id="inputAbrirScript" accept=".js" style="display:none">
+    <button id="btnImportarJSON">📥 Importar JSON</button>
+    <input type="file" id="inputImportarJSON" accept=".json" style="display:none">
+    <button id="btnModeloJSON">📄 Baixar modelo JSON</button>
+    <button id="btnAjuda">❓ Ajuda</button>
+    <button id="btnExportar" class="primary">⬇️ Exportar tutorial (ZIP)</button>
+  </div>
+
+  <!-- TELA 1: softwares -->
+  <section id="view-software" class="view on">
+    <button class="addbtn" id="btnNovoSoftware">➕ Novo software</button>
+    <div id="softwareGrid" class="grid"></div>
+  </section>
+
+  <!-- TELA 2: índice de tutoriais de um software -->
+  <section id="view-tutorials" class="view">
+    <div class="viewhead">
+      <button class="back" id="btnBackTutorials">⬅️</button>
+      <div><b id="tvTitle"></b><small id="tvSub"></small></div>
+    </div>
+    <button class="addbtn" id="btnNovoItemIndice">➕ Novo item do índice</button>
+    <ul id="tutorialIndexList" style="list-style:none"></ul>
+  </section>
+
+  <!-- TELA 3: passo a passo de um item do índice -->
+  <section id="view-detail" class="view">
+    <div class="viewhead">
+      <button class="back" id="btnBackDetail">⬅️</button>
+      <div><b id="dvTitle"></b><small>Imagens, vídeo e passo a passo</small></div>
+    </div>
+
+    <div class="sectionhead"><h3>🖼️ Imagens</h3><button id="btnAddImagens">➕ Adicionar imagens</button></div>
+    <input type="file" id="inputImagens" accept="image/*" multiple style="display:none">
+    <ul id="detailImages" style="list-style:none"></ul>
+
+    <div class="sectionhead"><h3>🎬 Vídeo (opcional)</h3><button id="btnAddVideo">➕ Anexar vídeo</button></div>
+    <input type="file" id="inputVideo" accept="video/*" style="display:none">
+    <div id="detailVideo"></div>
+
+    <div class="sectionhead"><h3>📋 Passo a passo</h3><button id="btnAddInstrucao">➕ Novo passo</button></div>
+    <ul id="detailInstructions" style="list-style:none"></ul>
+  </section>
+
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modalBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<div id="ajudaConteudo" style="display:none">
+  <h3>❓ Como usar</h3>
+  <p><b>1. Cadastre um software</b> (categoria de contingência): nome, descrição, ícone opcional.</p>
+  <p><b>2. Toque no software</b> para abrir o índice de tutoriais dele, e adicione os títulos (ex: "Parte 1 – ...").</p>
+  <p><b>3. Toque num título</b> para cadastrar as imagens (com legenda), o vídeo e o passo a passo dele.</p>
+  <p><b>4. Exportar:</b> baixa um .zip com index.html, style.css, script.js e todos os arquivos de mídia anexados, prontos para hospedar.</p>
+  <p><b>Importação em lote (JSON):</b> baixe o modelo, preencha os dados (textos) e importe para preencher tudo de uma vez. As imagens/vídeo ainda precisam ser anexados manualmente depois, pois um JSON não carrega arquivos binários.</p>
+  <p><b>Abrir script.js existente:</b> carrega um arquivo já gerado para editar/atualizar. Os TEXTOS voltam todos; IMAGENS e VÍDEO aparecem só pelo nome (o navegador não tem acesso a esses arquivos) — se quiser trocá-los ou incluí-los no próximo export, anexe-os de novo nessa tela.</p>
+  <p><b>Nota técnica:</b> os arquivos de mídia devem ficar na MESMA pasta do index.html (sem subpasta) — é assim que o modelo original carrega as imagens, apesar do comentário antigo mencionar uma pasta "imagens".</p>
+</div>
+
+
+		<footer style="text-align: center; color: white; font-size: 18px;"> <!-- Início do Rodapé da página -->
+                  <p style="text-align: center;">
+                  <a href="https://antoniopsj1-alt.github.io/Portfolio-AntonioJunior/" target="_blank" style="text-decoration: none; color: inherit;">
+                   &copy; 2026 Antônio Pereira de Souza Junior.
+                  </a>
+                  </p>
+			<p style="text-align: center;">Todos os direitos reservados.</p>
+			<address style="text-align: center; color: blue; text-weight: bold;">
+			 Contato: <a href="mailto:antoniopsj1@gmail.com">antoniopsj1@gmail.com</a>
+			</address> 
+		</footer> <!-- Fim do Rodapé -->
+
+
+<script>
+const RUNTIME_B64 = "bGV0IGN1cnJlbnRTb2Z0d2FyZSA9IG51bGw7Cgpjb25zdCBob21lU2NyZWVuID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImhvbWVTY3JlZW4iKTsKY29uc3QgaW5kZXhTY3JlZW4gPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiaW5kZXhTY3JlZW4iKTsKY29uc3QgY29udGVudFNjcmVlbiA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJjb250ZW50U2NyZWVuIik7CgpmdW5jdGlvbiByZW5kZXJTb2Z0d2FyZXMoZmlsdGVyID0gIiIpIHsKCmNvbnN0IGdyaWQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgic29mdHdhcmVHcmlkIik7CgpncmlkLmlubmVySFRNTCA9ICIiOwoKc29mdHdhcmVzCi5maWx0ZXIoaXRlbSA9PgppdGVtLm5hbWUudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhmaWx0ZXIudG9Mb3dlckNhc2UoKSkKKQouZm9yRWFjaChpdGVtID0+IHsKCmdyaWQuaW5uZXJIVE1MICs9IGAKPGRpdgpjbGFzcz0ic29mdHdhcmUtY2FyZCBjYXJkLWhvdmVyIgpvbmNsaWNrPSJzaG93U29mdHdhcmVJbmRleCgnJHtpdGVtLmlkfScpIgo+CjxpbWcgc3JjPSIke2l0ZW0uaWNvbn0iIGFsdD0iRmlndXJhIHJlbGFjaW9uYWRhIGEgJHtpdGVtLm5hbWV9IiBjbGFzcz0ic29mdHdhcmUtaWNvbi1pbWciIG9uZXJyb3I9InRoaXMuc3R5bGUuZGlzcGxheT0nbm9uZSc7Ij4KCjxoMyBjbGFzcz0idGV4dC14bCBmb250LWJvbGQgbWItMiI+CiR7aXRlbS5uYW1lfQo8L2gzPgoKPHAgY2xhc3M9InRleHQtZ3JheS00MDAiPgoke2l0ZW0uZGVzY3JpcHRpb259CjwvcD4KCjwvZGl2PgpgOwoKfSk7Cgp9CgpmdW5jdGlvbiBoaWRlQWxsKCl7Cgpob21lU2NyZWVuLnN0eWxlLmRpc3BsYXk9Im5vbmUiOwppbmRleFNjcmVlbi5zdHlsZS5kaXNwbGF5PSJub25lIjsKY29udGVudFNjcmVlbi5zdHlsZS5kaXNwbGF5PSJub25lIjsKCn0KCmZ1bmN0aW9uIHNob3dIb21lKCl7CgpoaWRlQWxsKCk7Cgpob21lU2NyZWVuLnN0eWxlLmRpc3BsYXk9ImJsb2NrIjsKCn0KCmZ1bmN0aW9uIHNob3dTb2Z0d2FyZUluZGV4KGlkKXsKCmN1cnJlbnRTb2Z0d2FyZSA9IHNvZnR3YXJlcy5maW5kKHggPT4geC5pZCA9PT0gaWQpOwoKaGlkZUFsbCgpOwoKaW5kZXhTY3JlZW4uc3R5bGUuZGlzcGxheT0iYmxvY2siOwoKZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoCiJzZWxlY3RlZFNvZnR3YXJlSWNvbiIKKS5pbm5lckhUTUw9YDxpbWcgc3JjPSIke2N1cnJlbnRTb2Z0d2FyZS5pY29ufSIgYWx0PSJGaWd1cmEgcmVsYWNpb25hZGEgYSAke2N1cnJlbnRTb2Z0d2FyZS5uYW1lfSIgY2xhc3M9InNlbGVjdGVkLXNvZnR3YXJlLWljb24taW1nIiBvbmVycm9yPSJ0aGlzLnN0eWxlLmRpc3BsYXk9J25vbmUnOyI+YDsKCmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKAoic2VsZWN0ZWRTb2Z0d2FyZVRpdGxlIgopLmlubmVySFRNTD1jdXJyZW50U29mdHdhcmUubmFtZTsKCnJlbmRlclR1dG9yaWFscygpOwoKY29uc3QgdHV0b3JpYWxTZWFyY2ggPQogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInR1dG9yaWFsU2VhcmNoSW5wdXQiKTsKCnR1dG9yaWFsU2VhcmNoLnZhbHVlID0gIiI7Cgp0dXRvcmlhbFNlYXJjaC5vbmtleXVwID0gKGUpID0+IHsKICAgIHJlbmRlclR1dG9yaWFscyhlLnRhcmdldC52YWx1ZSk7Cn07Cgp9CgpmdW5jdGlvbiBlc2NhcGVIdG1sKHRleHRvKSB7CiAgICByZXR1cm4gU3RyaW5nKHRleHRvKQogICAgICAgIC5yZXBsYWNlKC8mL2csICImYW1wOyIpCiAgICAgICAgLnJlcGxhY2UoLyIvZywgIiZxdW90OyIpCiAgICAgICAgLnJlcGxhY2UoLzwvZywgIiZsdDsiKQogICAgICAgIC5yZXBsYWNlKC8+L2csICImZ3Q7Iik7Cn0KCi8vIFNlIGEgaW1hZ2VtIG7Do28gY2FycmVnYXIsIG1vc3RyYSB1bSBhdmlzbyBjb20gbyBub21lIGRvIGFycXVpdm8gcHJvY3VyYWRvCmZ1bmN0aW9uIGltYWdlbUNvbUVycm8oaW1nKSB7CiAgICBjb25zdCBhcnF1aXZvID0gZGVjb2RlVVJJKGltZy5nZXRBdHRyaWJ1dGUoInNyYyIpKTsKICAgIGNvbnNvbGUubG9nKCJJbWFnZW0gbsOjbyBlbmNvbnRyYWRhOiIsIGFycXVpdm8pOwogICAgaW1nLnN0eWxlLmRpc3BsYXkgPSAibm9uZSI7CgogICAgY29uc3QgYXZpc28gPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJkaXYiKTsKICAgIGF2aXNvLnN0eWxlLmNzc1RleHQgPSAicGFkZGluZzoxNnB4O2NvbG9yOiNmY2E1YTU7Ym9yZGVyOjJweCBkYXNoZWQgI2ZmMzM1NTtmb250LXNpemU6LjlyZW07IjsKICAgIGF2aXNvLnRleHRDb250ZW50ID0gIuKaoCBJbWFnZW0gbsOjbyBlbmNvbnRyYWRhOiAiICsgYXJxdWl2bzsKICAgIGltZy5hZnRlcihhdmlzbyk7Cn0KCmZ1bmN0aW9uIHNob3dUdXRvcmlhbCh0aXRsZSkgewoKICAgIGhpZGVBbGwoKTsKICAgIGNvbnRlbnRTY3JlZW4uc3R5bGUuZGlzcGxheSA9ICJibG9jayI7CgogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInR1dG9yaWFsVGl0bGUiKS5pbm5lckhUTUwgPSB0aXRsZTsKCiAgICBjb25zdCBkZXRhaWxzID0gdHV0b3JpYWxEZXRhaWxzW3RpdGxlXSB8fCB7CiAgICAgICAgaW1hZ2VzOiBbXSwKICAgICAgICBpbnN0cnVjdGlvbnM6IFsiQ29udGXDumRvIGFpbmRhIG7Do28gY2FkYXN0cmFkby4iXQogICAgfTsKCiAgICAvLyBQQVNTT1MKICAgIGNvbnN0IGNvbnRlbnQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgidHV0b3JpYWxDb250ZW50Iik7CgogICAgY29uc3Qgc3RlcHMgPSBbLi4uZGV0YWlscy5pbnN0cnVjdGlvbnNdOwoKICAgIGlmIChkZXRhaWxzLnZpZGVvKSB7CiAgICAgICAgc3RlcHMucHVzaCh7IHZpZGVvOiBkZXRhaWxzLnZpZGVvIH0pOwogICAgfQoKICAgIGNvbnRlbnQuaW5uZXJIVE1MID0gc3RlcHMubWFwKChzdGVwLCBpbmRleCkgPT4gewoKICAgICAgICBjb25zdCB0ZXh0byA9CiAgICAgICAgICAgIHR5cGVvZiBzdGVwID09PSAic3RyaW5nIgogICAgICAgICAgICAgICAgPyBzdGVwCiAgICAgICAgICAgICAgICA6IGA8c3Bhbj4KICAgICAgICAgICAgICAgICAgICAgICBBc3Npc3RhIGFvIHbDrWRlbyBkZXN0ZSBwcm9jZWRpbWVudG86CiAgICAgICAgICAgICAgICAgICAgICAgPGEgaHJlZj0iJHtlbmNvZGVVUkkoc3RlcC52aWRlbyl9IiB0YXJnZXQ9Il9ibGFuayIgcmVsPSJub29wZW5lciIgY2xhc3M9InRleHQtY3lhbi00MDAgdW5kZXJsaW5lIj4KICAgICAgICAgICAgICAgICAgICAgICAgICDilrYgQWJyaXIgdsOtZGVvIE1QNAogICAgICAgICAgICAgICAgICAgICAgIDwvYT4KICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5gOwoKICAgICAgICByZXR1cm4gYAogICAgICAgICAgICA8bGkgY2xhc3M9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTMiPgogICAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICAgICAgdHlwZT0iY2hlY2tib3giCiAgICAgICAgICAgICAgICAgICAgY2xhc3M9Im10LTEgaC01IHctNSBhY2NlbnQtY3lhbi01MDAgY3Vyc29yLXBvaW50ZXIiPgoKICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzPSJ0ZXh0LXhsIGZvbnQtYm9sZCI+CiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3M9InRleHQtY3lhbi00MDAgZm9udC1ib2xkIj4KICAgICAgICAgICAgICAgICAgICAgICAgJHtpbmRleCArIDF9LgogICAgICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICAke3RleHRvfQogICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICA8L2xpPgogICAgICAgIGA7CiAgICB9KS5qb2luKCIiKTsKCiAgICAvLyBJTUFHRU5TIChjYWRhIGltYWdlbSBjb20gYSBzdWEgbGVnZW5kYSkKICAgIGNvbnN0IGltYWdlQXJlYSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJ0dXRvcmlhbEltYWdlQXJlYSIpOwoKICAgIGNvbnN0IGltYWdlcyA9IGRldGFpbHMuaW1hZ2VzIHx8IFtdOwoKICAgIGNvbnN0IGNhcmRzID0gaW1hZ2VzLm1hcChpbWcgPT4gYAogICAgICAgIDxkaXYgY2xhc3M9InR1dG9yaWFsLWltYWdlLWNhcmQiPgogICAgICAgICAgICA8aW1nCiAgICAgICAgICAgICAgICBzcmM9IiR7ZW5jb2RlVVJJKGltZy5zcmMpfSIKICAgICAgICAgICAgICAgIGFsdD0iJHtlc2NhcGVIdG1sKGltZy5jYXB0aW9uKX0iCiAgICAgICAgICAgICAgICBjbGFzcz0idHV0b3JpYWwtaW1hZ2UiCiAgICAgICAgICAgICAgICBsb2FkaW5nPSJsYXp5IgogICAgICAgICAgICAgICAgb25lcnJvcj0iaW1hZ2VtQ29tRXJybyh0aGlzKSIKICAgICAgICAgICAgPgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJ0dXRvcmlhbC1jYXB0aW9uLXJvdyBmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIj4KICAgICAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgICAgICAgIHR5cGU9ImNoZWNrYm94IgogICAgICAgICAgICAgICAgICAgIGNsYXNzPSJtdC0xIGgtNSB3LTUgYWNjZW50LWN5YW4tNTAwIGN1cnNvci1wb2ludGVyIj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3M9InR1dG9yaWFsLWNhcHRpb24iPiR7aW1nLmNhcHRpb259PC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgYCkuam9pbigiIik7CgogICAgaW1hZ2VBcmVhLmlubmVySFRNTCA9IGAKICAgICAgICA8ZGl2IGNsYXNzPSJ0dXRvcmlhbC1pbWFnZXMtbGlzdCI+CiAgICAgICAgICAgICR7Y2FyZHMgfHwgJzxwIGNsYXNzPSJ0dXRvcmlhbC1jYXB0aW9uIj5OZW5odW1hIGltYWdlbSBjYWRhc3RyYWRhLjwvcD4nfQogICAgICAgIDwvZGl2PgogICAgYDsKfS8vZmltIGRhIGZ1bsOnw6NvCgovKiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICBQRVNRVUlTQSBQT1IgVFVUT1JJQUwgTkEgU0VHVU5EQSBURUxBCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gKi8KZnVuY3Rpb24gcmVuZGVyVHV0b3JpYWxzKGZpbHRlciA9ICIiKSB7CiAgICBjb25zdCBsaXN0ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInR1dG9yaWFsTGlzdCIpOwoKICAgIGxpc3QuaW5uZXJIVE1MID0gIiI7CgogICAgY3VycmVudFNvZnR3YXJlLnR1dG9yaWFscwogICAgICAgIC5maWx0ZXIodHV0b3JpYWwgPT4KICAgICAgICAgICAgdHV0b3JpYWwudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhmaWx0ZXIudG9Mb3dlckNhc2UoKSkKICAgICAgICApCiAgICAgICAgLmZvckVhY2godGl0bGUgPT4gewoKICAgICAgICAgICAgbGlzdC5pbm5lckhUTUwgKz0gYAogICAgICAgICAgICAgICAgPGRpdgogICAgICAgICAgICAgICAgICAgIG9uY2xpY2s9InNob3dUdXRvcmlhbCgnJHt0aXRsZX0nKSIKICAgICAgICAgICAgICAgICAgICBjbGFzcz0idHV0b3JpYWwtY2FyZCIKICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4iPgogICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzcz0iZm9udC1tZWRpdW0iPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgJHt0aXRsZX0KICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzcz0idGV4dC1jeWFuLTQwMCB0ZXh0LXhsIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIOKGkgogICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgYDsKCiAgICAgICAgfSk7Cn0KCgoKLyogPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgUEVTUVVJU0EKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSAqLwoKZG9jdW1lbnQKLmdldEVsZW1lbnRCeUlkKCJzZWFyY2hJbnB1dCIpCi5hZGRFdmVudExpc3RlbmVyKCJrZXl1cCIsKGUpPT57CgpyZW5kZXJTb2Z0d2FyZXMoZS50YXJnZXQudmFsdWUpOwoKfSk7CgpyZW5kZXJTb2Z0d2FyZXMoKTsK";
+const INDEX_B64 = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9InB0LUJSIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8bWV0YSBuYW1lPSJrZXl3b3JkcyIgY29udGVudD0iQW50b25pbyBQZXJlaXJhIGRlIFNvdXphIEp1bmlvciwgQXBsaWNhdGl2byBwYXJhIENvbnRpbmfDqm5jaWEsIFVybmEgRWxldHLDtG5pY2EsIFJFRCwgUmVjdXBlcmFkb3IgZGUgRGFkb3MsIE3DrWRpYSBkZSBWb3Rhw6fDo28sIE3DrWRpYSBkZSBSZXN1bHRhZG8sIEJvYmluYSBkZSBQYXBlbCwgTcOzZHVsbyBJbXByZXNzb3IiPgo8bWV0YSBuYW1lPSJhdXRob3IiIGNvbnRlbnQ9IkFudMO0bmlvIFBlcmVpcmEgZGUgU291emEgSnVuaW9yIj4KCjx0aXRsZT5HdWlhIFByw6F0aWNvIGRlIFVybmEgLSBNYXJjZWxhPC90aXRsZT4KCjxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi50YWlsd2luZGNzcy5jb20iPjwvc2NyaXB0PgoKPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJzdHlsZS5jc3MiPgoKPC9oZWFkPgoKPGJvZHk+Cgo8ZGl2IGNsYXNzPSJjb250YWluZXIgbXgtYXV0byBweC00IHB5LTYiPgoKICAgIDwhLS0gSEVBREVSIC0tPgoKICAgIDxkaXYgY2xhc3M9Im1iLTgiPgoKPGRpdiBjbGFzcz0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTQiPgogICAgPGltZyBzcmM9ImxvZ290aXBvLnBuZyIgYWx0PSJMb2dvdGlwbyIgY2xhc3M9InctMjAgaC0yMCBtZDp3LTI0IG1kOmgtMjQgb2JqZWN0LWNvbnRhaW4gZmxleC1zaHJpbmstMCI+CiAgICA8aDEgY2xhc3M9InRleHQtNXhsIGZvbnQtYm9sZCB0ZXh0LWN5YW4tNDAwIj4KICAgICAgICBHdWlhIGRlIENvbnRpbmfDqm5jaWFzIG5hIEVsZWnDp8Ojby4KICAgIDwvaDE+CjwvZGl2PgoKPHAgY2xhc3M9InRleHQtc2xhdGUtNDAwIG10LTMgdGV4dC1sZyI+CiAgICBNYW51YWwgZGUgUHJvY2VkaW1lbnRvcyBkZSBDb250aW5nw6puY2lhIGRlIHVtYSBVcm5hIEVsZXRyw7RuaWNhIGR1cmFudGUgYSBWb3Rhw6fDo28uCjwvcD4KCiAgICA8L2Rpdj4KCiAgICA8IS0tID09PT09PT09PT09PT09PT09PT09PQogICAgICAgICBFU1RBRE8gMQogICAgPT09PT09PT09PT09PT09PT09PT09PT0gLS0+CgogICAgPHNlY3Rpb24gaWQ9ImhvbWVTY3JlZW4iIGNsYXNzPSJmYWRlIj4KCiAgICAgICAgPGRpdiBjbGFzcz0ibWItNiI+CiAgICAgICAgICAgIDxpbnB1dCAgICB0eXBlPSJ0ZXh0IiAgICBpZD0ic2VhcmNoSW5wdXQiICAgIHBsYWNlaG9sZGVyPSJQZXNxdWlzYXIgc29mdHdhcmUuLi4iICAgIGNsYXNzPSJzZWFyY2gtYm94Ii8+CiAgICAgICAgPC9kaXY+CgogICAgICAgIDxkaXYKICAgICAgICAgICAgaWQ9InNvZnR3YXJlR3JpZCIKICAgICAgICAgICAgY2xhc3M9ImdyaWQgZ2FwLTUgc206Z3JpZC1jb2xzLTIgbGc6Z3JpZC1jb2xzLTMgeGw6Z3JpZC1jb2xzLTQiCiAgICAgICAgPjwvZGl2PgoKICAgIDwvc2VjdGlvbj4KCiAgICA8IS0tID09PT09PT09PT09PT09PT09PT09PQogICAgICAgICBFU1RBRE8gMgogICAgPT09PT09PT09PT09PT09PT09PT09PT0gLS0+CgogICAgPHNlY3Rpb24gaWQ9ImluZGV4U2NyZWVuIiBjbGFzcz0iaGlkZGVuLXNjcmVlbiBmYWRlIj4KCiAgICAgICAgPGJ1dHRvbiAgICBvbmNsaWNrPSJzaG93SG9tZSgpIiAgICBjbGFzcz0iYWN0aW9uLWJ0biI+ICAgIPCfj6AgVm9sdGFyIHBhcmEgbyBJbsOtY2lvPC9idXR0b24+CgogICAgICAgIDxkaXYgY2xhc3M9ImZsZXggaXRlbXMtY2VudGVyIGdhcC00IG1iLTgiPgoKICAgICAgICAgICAgPGRpdiBpZD0ic2VsZWN0ZWRTb2Z0d2FyZUljb24iIGNsYXNzPSJ0ZXh0LTV4bCI+PC9kaXY+CgogICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgPGgyCiAgICAgICAgICAgICAgICAgICAgaWQ9InNlbGVjdGVkU29mdHdhcmVUaXRsZSIKICAgICAgICAgICAgICAgICAgICBjbGFzcz0idGV4dC0zeGwgZm9udC1ib2xkIgogICAgICAgICAgICAgICAgPjwvaDI+CgogICAgICAgICAgICAgICAgPHAgY2xhc3M9InRleHQtZ3JheS00MDAiPgogICAgICAgICAgICAgICAgICAgIEVzY29saGEgdW0gdHV0b3JpYWwgcHLDoXRpY28uCiAgICAgICAgICAgICAgICA8L3A+Cgo8ZGl2IGNsYXNzPSJtYi02Ij4KICAgIDxpbnB1dAogICAgICAgIHR5cGU9InRleHQiCiAgICAgICAgaWQ9InR1dG9yaWFsU2VhcmNoSW5wdXQiCiAgICAgICAgcGxhY2Vob2xkZXI9IlBlc3F1aXNhciB0dXRvcmlhbC4uLiIKICAgICAgICBjbGFzcz0ic2VhcmNoLWJveCIKICAgIC8+CjwvZGl2PgoKICAgICAgICAgICAgPC9kaXY+CgogICAgICAgIDwvZGl2PgoKICAgICAgICA8ZGl2CiAgICAgICAgICAgIGlkPSJ0dXRvcmlhbExpc3QiCiAgICAgICAgICAgIGNsYXNzPSJncmlkIGdhcC00IG1kOmdyaWQtY29scy0yIgogICAgICAgID48L2Rpdj4KCiAgICA8L3NlY3Rpb24+CgogICAgPCEtLSA9PT09PT09PT09PT09PT09PT09PT0KICAgICAgICAgRVNUQURPIDMKICAgID09PT09PT09PT09PT09PT09PT09PT09IC0tPgoKICAgIDxzZWN0aW9uIGlkPSJjb250ZW50U2NyZWVuIiBjbGFzcz0iaGlkZGVuLXNjcmVlbiBmYWRlIj4KCiAgICAgICAgPGRpdiBjbGFzcz0iZmxleCBmbGV4LXdyYXAgbW9iaWxlLXN0YWNrIGdhcC0zIG1iLTYiPgoKICAgICAgICAgICAgPGJ1dHRvbiAgICBvbmNsaWNrPSJzaG93U29mdHdhcmVJbmRleChjdXJyZW50U29mdHdhcmUuaWQpIiAgICBjbGFzcz0iYWN0aW9uLWJ0biI+ICAgIOKshe+4jyBWb2x0YXIgcGFyYSBvIMONbmRpY2U8L2J1dHRvbj4KCiAgICAgICAgICAgIDxidXR0b24gICAgb25jbGljaz0ic2hvd0hvbWUoKSIgICAgY2xhc3M9ImFjdGlvbi1idG4iPiAgICDwn4+gIFZvbHRhciBwYXJhIG8gSW7DrWNpbzwvYnV0dG9uPgoKICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGgyCiAgICAgICAgICAgIGlkPSJ0dXRvcmlhbFRpdGxlIgogICAgICAgICAgICBjbGFzcz0idGV4dC0zeGwgZm9udC1ib2xkIG1iLTgiCiAgICAgICAgPjwvaDI+CgogICAgICAgPGRpdiBjbGFzcz0idHV0b3JpYWwtbGF5b3V0Ij4KCiAgICA8IS0tIFZJU1VBTCAtLT4KICAgIDxkaXYgY2xhc3M9ImltYWdlLXBsYWNlaG9sZGVyIiBpZD0idHV0b3JpYWxWaXN1YWwiPgogICAgICAgIDxkaXYgaWQ9InR1dG9yaWFsSW1hZ2VBcmVhIiBjbGFzcz0idy1mdWxsIGgtZnVsbCI+CiAgICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KCiAgICA8IS0tIFRFWFRPIC0tPgogICAgPGRpdiBjbGFzcz0iYmctc2xhdGUtODAwIHJvdW5kZWQtMnhsIHAtNiBib3JkZXIgYm9yZGVyLXNsYXRlLTcwMCI+CiAgICAgICAgPGgzIGNsYXNzPSJ0ZXh0LXhsIGZvbnQtc2VtaWJvbGQgbWItNCI+CiAgICAgICAgICAgIFBhc3NvIGEgUGFzc28KICAgICAgICA8L2gzPgoKICAgICAgICA8dWwKICAgICAgICAgICAgaWQ9InR1dG9yaWFsQ29udGVudCIKICAgICAgICAgICAgY2xhc3M9InNwYWNlLXktNCB0ZXh0LWdyYXktMzAwIgogICAgICAgID48L3VsPgogICAgPC9kaXY+Cgo8L2Rpdj4KCiAgICAgICAgPGRpdiBjbGFzcz0ibXQtOCBmbGV4IGdhcC0zIj4KCiAgICAgICAgICAgICA8YnV0dG9uICAgIG9uY2xpY2s9InNob3dTb2Z0d2FyZUluZGV4KGN1cnJlbnRTb2Z0d2FyZS5pZCkiICAgIGNsYXNzPSJhY3Rpb24tYnRuIj4gICAg4qyF77iPIFZvbHRhciBwYXJhIG8gw41uZGljZTwvYnV0dG9uPgoKICAgICAgICAgICAgPGJ1dHRvbiAgICBvbmNsaWNrPSJzaG93SG9tZSgpIiAgICBjbGFzcz0iYWN0aW9uLWJ0biI+ICAgIPCfj6AgVm9sdGFyIHBhcmEgbyBJbsOtY2lvPC9idXR0b24+CgogICAgICAgIDwvZGl2PgoKICAgIDwvc2VjdGlvbj4KCjwvZGl2PgoKCgkJPGZvb3RlciBzdHlsZT0idGV4dC1hbGlnbjogY2VudGVyOyI+IDwhLS0gSW7DrWNpbyBkbyBSb2RhcMOpIGRhIHDDoWdpbmEgLS0+CiAgICAgICAgICAgICAgICAgIDxwIHN0eWxlPSJ0ZXh0LWFsaWduOiBjZW50ZXI7Ij4KICAgICAgICAgICAgICAgICAgPGEgaHJlZj0iaHR0cHM6Ly9hbnRvbmlvcHNqMS1hbHQuZ2l0aHViLmlvL1BvcnRmb2xpby1BbnRvbmlvSnVuaW9yLyIgdGFyZ2V0PSJfYmxhbmsiIHN0eWxlPSJ0ZXh0LWRlY29yYXRpb246IG5vbmU7IGNvbG9yOiBpbmhlcml0OyI+CiAgICAgICAgICAgICAgICAgICAmY29weTsgMjAyNiBBbnTDtG5pbyBQZXJlaXJhIGRlIFNvdXphIEp1bmlvci4KICAgICAgICAgICAgICAgICAgPC9hPgogICAgICAgICAgICAgICAgICA8L3A+CgkJCTxwIHN0eWxlPSJ0ZXh0LWFsaWduOiBjZW50ZXI7Ij5Ub2RvcyBvcyBkaXJlaXRvcyByZXNlcnZhZG9zLjwvcD4KCQkJPGFkZHJlc3Mgc3R5bGU9InRleHQtYWxpZ246IGNlbnRlcjsgY29sb3I6IGJsdWU7IHRleHQtd2VpZ2h0OiBib2xkOyI+CgkJCSBDb250YXRvOiA8YSBocmVmPSJtYWlsdG86YW50b25pb3BzajFAZ21haWwuY29tIj5hbnRvbmlvcHNqMUBnbWFpbC5jb208L2E+CgkJCTwvYWRkcmVzcz4gCgkJPC9mb290ZXI+IDwhLS0gRmltIGRvIFJvZGFww6kgLS0+Cgo8c2NyaXB0IHNyYz0ic2NyaXB0LmpzIj48L3NjcmlwdD4KCjwvYm9keT4KCjwvaHRtbD4=";
+const STYLE_B64 = "KiB7CiAgICBtYXJnaW46IDA7CiAgICBwYWRkaW5nOiAwOwogICAgYm94LXNpemluZzogYm9yZGVyLWJveDsKfQoKYm9keXsKICAgIGJhY2tncm91bmQ6IzBmMTcyYTsKICAgIGNvbG9yOndoaXRlOwogICAgZm9udC1mYW1pbHk6SW50ZXIsc2Fucy1zZXJpZjsKfQoKLmhpZGRlbi1zY3JlZW57CiAgICBkaXNwbGF5Om5vbmU7Cn0KCi50dXRvcmlhbC1pbWFnZS1jYXJkewogICAgbWFyZ2luLWJvdHRvbToxMHB4OwogICAgYmFja2dyb3VuZDojMGYxNzJhOwogICAgYm9yZGVyOjFweCBzb2xpZCAjMzM0MTU1OwogICAgYm9yZGVyLXJhZGl1czoxMHB4OwogICAgb3ZlcmZsb3c6aGlkZGVuOwp9CgoudHV0b3JpYWwtY2FwdGlvbnsKICAgIHBhZGRpbmc6MTJweDsKICAgIGJhY2tncm91bmQ6IzBmMTcyYTsKICAgIGNvbG9yOndoaXRlOwogICAgYm9yZGVyLXRvcDoxcHggc29saWQgIzMzNDE1NTsKfQoKLmZhZGV7CiAgICBhbmltYXRpb246ZmFkZSAuMzVzIGVhc2U7Cn0KCkBrZXlmcmFtZXMgZmFkZXsKICAgIGZyb217CiAgICAgICAgb3BhY2l0eTowOwogICAgICAgIHRyYW5zZm9ybTp0cmFuc2xhdGVZKDEwcHgpOwogICAgfQogICAgdG97CiAgICAgICAgb3BhY2l0eToxOwogICAgICAgIHRyYW5zZm9ybTp0cmFuc2xhdGVZKDApOwogICAgfQp9CgoudHV0b3JpYWwtbGF5b3V0ewogICAgZGlzcGxheTpncmlkOwogICAgZ3JpZC10ZW1wbGF0ZS1jb2x1bW5zOiA0MCUgNjAlOwogICAgZ2FwOjE1cHg7Cn0KCi5pbWFnZS1wbGFjZWhvbGRlcnsKICAgIG1pbi1oZWlnaHQ6NzB2aDsKICAgIG92ZXJmbG93OmF1dG87Cn0KCi50dXRvcmlhbC1pbWFnZXMtbGlzdHsKICAgIG92ZXJmbG93OmF1dG87CiAgICB0b3VjaC1hY3Rpb246cGluY2gtem9vbTsKfQoKLmNhcmQtaG92ZXJ7CiAgICB0cmFuc2l0aW9uOmFsbCAuM3MgZWFzZTsKICAgIGN1cnNvcjpwb2ludGVyOwp9CgouY2FyZC1ob3Zlcjpob3ZlcnsKICAgIHRyYW5zZm9ybTp0cmFuc2xhdGVZKC04cHgpOwogICAgYm9yZGVyLWNvbG9yOiMyMmQzZWU7CiAgICBib3gtc2hhZG93OjAgMjBweCA0MHB4IHJnYmEoNiwxODIsMjEyLC4yNSk7Cn0KCi5pbWFnZS1wbGFjZWhvbGRlcnsKICAgIHBvc2l0aW9uOnJlbGF0aXZlOwogICAgYmFja2dyb3VuZDpsaW5lYXItZ3JhZGllbnQoCiAgICAgICAgMTM1ZGVnLAogICAgICAgICMxZTI5M2IsCiAgICAgICAgIzBmMTcyYQogICAgKTsKICAgIGJvcmRlci1yYWRpdXM6MjBweDsKICAgIGJvcmRlcjoxcHggc29saWQgIzMzNDE1NTsKICAgIG92ZXJmbG93OmhpZGRlbjsKICAgIGhlaWdodDoxMDAlOwp9CgpAbWVkaWEobWluLXdpZHRoOjEwMjRweCl7CiAgICAuaW1hZ2UtcGxhY2Vob2xkZXJ7CiAgICAgICAgbWluLWhlaWdodDo1MjBweDsKICAgIH0KfQoKLnR1dG9yaWFsLWltYWdlewogICAgd2lkdGg6MTAwJTsKICAgIG1pbi13aWR0aDoxMDAlOwogICAgaGVpZ2h0OmF1dG87CiAgICBvYmplY3QtZml0OmNvbnRhaW47CiAgICBib3JkZXItcmFkaXVzOjhweDsKICAgIGRpc3BsYXk6YmxvY2s7Cn0KCi50dXRvcmlhbC1pbWFnZXMtbGlzdHsKICAgIHdpZHRoOjEwMCU7CiAgICBoZWlnaHQ6MTAwJTsKICAgIGRpc3BsYXk6ZmxleDsKICAgIGZsZXgtZGlyZWN0aW9uOmNvbHVtbjsKICAgIGdhcDoycHg7CiAgICBwYWRkaW5nOjJweDsKICAgIG92ZXJmbG93LXk6c2Nyb2xsOwogICAgb3ZlcmZsb3cteDpoaWRkZW47Cn0KCgoudHV0b3JpYWwtaW1hZ2VzLWxpc3Q6Oi13ZWJraXQtc2Nyb2xsYmFyewogICAgd2lkdGg6MTJweDsKfQoKLnR1dG9yaWFsLWltYWdlcy1saXN0Ojotd2Via2l0LXNjcm9sbGJhci10cmFja3sKICAgIGJhY2tncm91bmQ6IzFlMjkzYjsKfQoKLnR1dG9yaWFsLWltYWdlcy1saXN0Ojotd2Via2l0LXNjcm9sbGJhci10aHVtYnsKICAgIGJhY2tncm91bmQ6IzA2YjZkNDsKICAgIGJvcmRlci1yYWRpdXM6MTBweDsKfQoKLmltYWdlLWNhcHRpb257CiAgICBwb3NpdGlvbjphYnNvbHV0ZTsKICAgIGxlZnQ6MTZweDsgcmlnaHQ6MTZweDsgYm90dG9tOjE2cHg7CiAgICBiYWNrZ3JvdW5kOnJnYmEoMTUsMjMsNDIsLjg4KTsKICAgIGJvcmRlcjoxcHggc29saWQgIzMzNDE1NTsKICAgIGJvcmRlci1yYWRpdXM6MTJweDsKICAgIHBhZGRpbmc6MTBweCAxMnB4OwogICAgY29sb3I6I2NiZDVlMTsKICAgIGZvbnQtc2l6ZTouOXJlbTsKfQouaGlnaGxpZ2h0LWJveHsKICAgIHBvc2l0aW9uOmFic29sdXRlOwoKICAgIHdpZHRoOjIyJTsKICAgIGhlaWdodDoxMiU7CgogICAgdG9wOjI1JTsKICAgIGxlZnQ6MTglOwoKICAgIGJvcmRlcjozcHggc29saWQgI2ZmMzM1NTsKICAgIGJvcmRlci1yYWRpdXM6MTJweDsKCiAgICBib3gtc2hhZG93OgogICAgICAgIDAgMCAxMHB4ICNmZjMzNTUsCiAgICAgICAgMCAwIDIwcHggI2ZmMzM1NTsKfQoKCi5hcnJvd3sKICAgIHBvc2l0aW9uOmFic29sdXRlOwoKICAgIHRvcDozMiU7CiAgICBsZWZ0OjQ1JTsKCiAgICBjb2xvcjojZmYzMzU1OwogICAgZm9udC1zaXplOjJyZW07Cn0KCi5hY3Rpb24tYnRuewogICAgZGlzcGxheTpmbGV4OwogICAgYWxpZ24taXRlbXM6Y2VudGVyOwogICAganVzdGlmeS1jb250ZW50OmNlbnRlcjsKICAgIGdhcDo4cHg7CgogICAgYmFja2dyb3VuZDpsaW5lYXItZ3JhZGllbnQoCiAgICAgICAgdG8gcmlnaHQsCiAgICAgICAgIzI1NjNlYiwKICAgICAgICAjMDZiNmQ0CiAgICApOwoKICAgIGNvbG9yOndoaXRlOwogICAgZm9udC13ZWlnaHQ6NjAwOwoKICAgIHBhZGRpbmc6MTJweCAyMHB4OwoKICAgIGJvcmRlci1yYWRpdXM6MTRweDsKCiAgICB0cmFuc2l0aW9uOi4zczsKCiAgICBib3gtc2hhZG93OgogICAgMCAxMHB4IDIwcHggcmdiYSgzNyw5OSwyMzUsLjI1KTsKfQoKLmFjdGlvbi1idG46aG92ZXJ7CiAgICB0cmFuc2Zvcm06dHJhbnNsYXRlWSgtMnB4KTsKICAgIGJveC1zaGFkb3c6CiAgICAwIDE1cHggMzBweCByZ2JhKDYsMTgyLDIxMiwuMzUpOwp9CgouYWN0aW9uLWJ0bjphY3RpdmV7CiAgICB0cmFuc2Zvcm06c2NhbGUoLjk3KTsKfQoKI3R1dG9yaWFsTGlzdCBkaXZ7CiAgICBjdXJzb3I6cG9pbnRlcjsKfQoKLnNvZnR3YXJlLWNhcmR7CiAgICBiYWNrZ3JvdW5kOnJnYmEoMzAsNDEsNTksLjkpOwogICAgYmFja2Ryb3AtZmlsdGVyOmJsdXIoMTBweCk7CgogICAgYm9yZGVyOjFweCBzb2xpZCAjMzM0MTU1OwoKICAgIGJvcmRlci1yYWRpdXM6MjBweDsKCiAgICBwYWRkaW5nOjI0cHg7CgogICAgdHJhbnNpdGlvbjouM3M7Cn0KCi5zb2Z0d2FyZS1jYXJkOmhvdmVyewogICAgYm9yZGVyLWNvbG9yOiMyMmQzZWU7CiAgICB0cmFuc2Zvcm06dHJhbnNsYXRlWSgtOHB4KTsKCiAgICBib3gtc2hhZG93OgogICAgMCAyMHB4IDQwcHggcmdiYSgzNCwyMTEsMjM4LC4xNSk7Cn0KCi50dXRvcmlhbC1jYXJkewogICAgY3Vyc29yOnBvaW50ZXI7CgogICAgYmFja2dyb3VuZDojMWUyOTNiOwoKICAgIGJvcmRlcjoxcHggc29saWQgIzMzNDE1NTsKCiAgICBib3JkZXItcmFkaXVzOjE4cHg7CgogICAgcGFkZGluZzoyMHB4OwoKICAgIHRyYW5zaXRpb246LjNzOwp9Cgouc2VsZWN0ZWQtc29mdHdhcmUtaWNvbi1pbWd7CiAgICB3aWR0aDogNjRweDsKICAgIGhlaWdodDogNjRweDsKICAgIG9iamVjdC1maXQ6IGNvbnRhaW47CiAgICBmbGV4LXNocmluazogMDsKfQoKCgoudHV0b3JpYWwtY2FyZDpob3ZlcnsKICAgIGJhY2tncm91bmQ6IzI3MzU0OTsKCiAgICBib3JkZXItY29sb3I6IzIyZDNlZTsKCiAgICB0cmFuc2Zvcm06dHJhbnNsYXRlWSgtNHB4KTsKCiAgICBib3gtc2hhZG93OgogICAgMCAxMHB4IDI1cHggcmdiYSgzNCwyMTEsMjM4LC4xNSk7Cn0KCi5zZWFyY2gtYm94ewogICAgd2lkdGg6MTAwJTsKCiAgICBiYWNrZ3JvdW5kOiMxZTI5M2I7CgogICAgYm9yZGVyOjFweCBzb2xpZCAjMzM0MTU1OwoKICAgIGJvcmRlci1yYWRpdXM6MThweDsKCiAgICBwYWRkaW5nOjE1cHggMThweDsKCiAgICBjb2xvcjp3aGl0ZTsKCiAgICBvdXRsaW5lOm5vbmU7CgogICAgdHJhbnNpdGlvbjouM3M7Cn0KCi5zZWFyY2gtYm94OmZvY3VzewogICAgYm9yZGVyLWNvbG9yOiMyMmQzZWU7CiAgICBib3gtc2hhZG93OgogICAgMCAwIDAgNHB4IHJnYmEoMzQsMjExLDIzOCwuMTUpOwp9CgpAbWVkaWEobWF4LXdpZHRoOjc2OHB4KXsKCiAgICAudHV0b3JpYWwtbGF5b3V0ewogICAgICAgIGdyaWQtdGVtcGxhdGUtY29sdW1uczo0MCUgNjAlOwogICAgfQoKICAgIC50dXRvcmlhbC1pbWFnZXMtbGlzdHsKICAgICAgICBtYXgtaGVpZ2h0OjY1dmg7CiAgICAgICAgb3ZlcmZsb3cteTpzY3JvbGw7CiAgICB9CgoKfQo=";
+</script>
+<script>
+/* ======================================================================
+   CRIADOR DE TUTORIAIS — lógica da aplicação
+   Gera um pacote index.html + style.css + script.js idêntico ao modelo
+   "Guia de Contingências na Eleição", mas com os dados preenchidos
+   pelo usuário nesta ferramenta.
+====================================================================== */
+
+/* ---------- estado ---------- */
+let state = { softwares: [] };
+// cada software: {id,name,description,iconName,iconFile(File|null),tutorials:[title,...]}
+let details = {};
+// details[title] = {images:[{name,caption,file(File|null)}], videoName, videoFile(File|null), instructions:[...]}
+
+let curSoftwareIdx = null;
+let curTutorialTitle = null;
+
+/* ---------- utilidades ---------- */
+const $ = (id) => document.getElementById(id);
+
+function escapeHtml(t) {
+  return String(t ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function toast(msg, tipo) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.className = "toast on" + (tipo === "erro" ? " erro" : "");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("on"), 3200);
+}
+
+function nomeUnico(nome, usados) {
+  if (!usados.has(nome)) { usados.add(nome); return nome; }
+  const ponto = nome.lastIndexOf(".");
+  const base = ponto > -1 ? nome.slice(0, ponto) : nome;
+  const ext = ponto > -1 ? nome.slice(ponto) : "";
+  let i = 2, novo;
+  do { novo = `${base} (${i})${ext}`; i++; } while (usados.has(novo));
+  usados.add(novo);
+  return novo;
+}
+
+function show(viewId) {
+  document.querySelectorAll(".view").forEach((v) => v.classList.remove("on"));
+  $(viewId).classList.add("on");
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+}
+
+function abrirModal(html) {
+  $("modalBody").innerHTML = html;
+  $("overlay").classList.add("on");
+}
+function fecharModal() { $("overlay").classList.remove("on"); }
+$("overlay").addEventListener("click", (e) => { if (e.target.id === "overlay") fecharModal(); });
+
+/* ======================================================================
+   TELA 1 — SOFTWARES (categorias de contingência)
+====================================================================== */
+
+function renderSoftwareList() {
+  const grid = $("softwareGrid");
+  if (!state.softwares.length) {
+    grid.innerHTML = `<p class="vazio">Nenhum software cadastrado ainda. Toque em "➕ Novo software" para começar.</p>`;
+    return;
+  }
+  grid.innerHTML = state.softwares.map((sw, i) => `
+    <div class="sw-card">
+      <div class="sw-card-top" data-open="${i}">
+        <div class="sw-icon">${sw.iconFile ? `<img src="${URL.createObjectURL(sw.iconFile)}">` : "🗳️"}</div>
+        <div class="sw-info">
+          <b>${escapeHtml(sw.name || "(sem nome)")}</b>
+          <small>${escapeHtml(sw.id)}</small>
+          <p>${escapeHtml(sw.description || "")}</p>
+          <span class="chip">${sw.tutorials.length} tutorial(is)</span>
+        </div>
+      </div>
+      <div class="sw-card-actions">
+        <button data-edit="${i}">✏️ Editar dados</button>
+        <button data-del="${i}" class="danger">🗑️ Excluir</button>
+      </div>
+    </div>
+  `).join("");
+
+  grid.querySelectorAll("[data-open]").forEach((el) =>
+    el.addEventListener("click", () => openTutorialsView(Number(el.dataset.open))));
+  grid.querySelectorAll("[data-edit]").forEach((el) =>
+    el.addEventListener("click", (e) => { e.stopPropagation(); openSoftwareForm(Number(el.dataset.edit)); }));
+  grid.querySelectorAll("[data-del]").forEach((el) =>
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const i = Number(el.dataset.del);
+      if (confirm(`Excluir "${state.softwares[i].name}" e todos os seus tutoriais?`)) {
+        state.softwares.splice(i, 1);
+        renderSoftwareList();
+      }
+    }));
+}
+
+function softwareFormHTML(sw) {
+  return `
+    <h3>${sw ? "✏️ Editar software" : "➕ Novo software"}</h3>
+    <label>ID interno (curto, sem repetir)</label>
+    <input type="text" id="fId" placeholder='Ex: CONTINGÊNCIA 1' value="${sw ? escapeHtml(sw.id) : ""}">
+    <label>Nome exibido</label>
+    <input type="text" id="fName" placeholder='Ex: 01 VÍDEO - CONTINGÊNCIA 1' value="${sw ? escapeHtml(sw.name) : ""}">
+    <label>Descrição curta</label>
+    <input type="text" id="fDesc" placeholder='Ex: Reinício da Urna Eletrônica com defeito.' value="${sw ? escapeHtml(sw.description) : ""}">
+    <label>Ícone (imagem, opcional)</label>
+    <label class="filepick" for="fIcon">🖼️ <span id="fIconNome">${sw && sw.iconName ? escapeHtml(sw.iconName) : "Escolher imagem"}</span><input type="file" id="fIcon" accept="image/*"></label>
+    <button class="save" id="fSave">${sw ? "Salvar alterações" : "Cadastrar software"}</button>
+  `;
+}
+
+function openSoftwareForm(editIdx) {
+  const sw = editIdx != null ? state.softwares[editIdx] : null;
+  abrirModal(softwareFormHTML(sw));
+  let iconFile = sw ? sw.iconFile : null;
+  let iconName = sw ? sw.iconName : "";
+  $("fIcon").onchange = (e) => {
+    const f = e.target.files[0];
+    if (f) { iconFile = f; iconName = f.name; $("fIconNome").textContent = f.name; }
+  };
+  $("fSave").onclick = () => {
+    const id = $("fId").value.trim();
+    const name = $("fName").value.trim();
+    const description = $("fDesc").value.trim();
+    if (!id || !name) { toast("Preencha pelo menos o ID e o nome.", "erro"); return; }
+    if (editIdx == null && state.softwares.some((s) => s.id === id)) {
+      toast("Já existe um software com esse ID.", "erro"); return;
+    }
+    if (editIdx != null) {
+      Object.assign(sw, { id, name, description, iconFile, iconName });
+    } else {
+      state.softwares.push({ id, name, description, iconFile, iconName, tutorials: [] });
+    }
+    fecharModal();
+    renderSoftwareList();
+  };
+}
+$("btnNovoSoftware").onclick = () => openSoftwareForm(null);
+
+/* ======================================================================
+   TELA 2 — ÍNDICE DE TUTORIAIS DE UM SOFTWARE
+====================================================================== */
+
+function openTutorialsView(idx) {
+  curSoftwareIdx = idx;
+  const sw = state.softwares[idx];
+  $("tvTitle").textContent = sw.name;
+  $("tvSub").textContent = sw.id;
+  renderTutorialsList();
+  show("view-tutorials");
+}
+$("btnBackTutorials").onclick = () => { renderSoftwareList(); show("view-software"); };
+
+function renderTutorialsList() {
+  const sw = state.softwares[curSoftwareIdx];
+  const ul = $("tutorialIndexList");
+  if (!sw.tutorials.length) {
+    ul.innerHTML = `<p class="vazio">Nenhum item no índice ainda. Toque em "➕ Novo item do índice".</p>`;
+    return;
+  }
+  ul.innerHTML = sw.tutorials.map((t, i) => `
+    <li class="row">
+      <span class="num">${i + 1}</span>
+      <span class="rowtxt" data-open="${i}">${escapeHtml(t)}</span>
+      <span class="rowbtns">
+        <button data-up="${i}" title="Mover para cima">▲</button>
+        <button data-down="${i}" title="Mover para baixo">▼</button>
+        <button data-ren="${i}" title="Renomear">✏️</button>
+        <button data-del="${i}" title="Excluir" class="danger">🗑️</button>
+      </span>
+    </li>
+  `).join("");
+
+  ul.querySelectorAll("[data-open]").forEach((el) =>
+    el.addEventListener("click", () => openDetailView(sw.tutorials[Number(el.dataset.open)])));
+  ul.querySelectorAll("[data-up]").forEach((el) =>
+    el.addEventListener("click", () => moverItem(sw.tutorials, Number(el.dataset.up), -1, renderTutorialsList)));
+  ul.querySelectorAll("[data-down]").forEach((el) =>
+    el.addEventListener("click", () => moverItem(sw.tutorials, Number(el.dataset.down), 1, renderTutorialsList)));
+  ul.querySelectorAll("[data-ren]").forEach((el) =>
+    el.addEventListener("click", () => renomearTutorial(Number(el.dataset.ren))));
+  ul.querySelectorAll("[data-del]").forEach((el) =>
+    el.addEventListener("click", () => {
+      const i = Number(el.dataset.del);
+      const titulo = sw.tutorials[i];
+      if (confirm(`Excluir "${titulo}" do índice? (os dados de passo a passo dele também serão apagados)`)) {
+        sw.tutorials.splice(i, 1);
+        delete details[titulo];
+        renderTutorialsList();
+      }
+    }));
+}
+
+function moverItem(arr, i, delta, rerender) {
+  const j = i + delta;
+  if (j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  rerender();
+}
+
+$("btnNovoItemIndice").onclick = () => {
+  const titulo = prompt("Título deste item do índice (ex: Parte 1 – Componentes da Urna Eletrônica):");
+  if (!titulo) return;
+  const sw = state.softwares[curSoftwareIdx];
+  if (sw.tutorials.includes(titulo)) { toast("Esse título já existe no índice.", "erro"); return; }
+  sw.tutorials.push(titulo);
+  details[titulo] = details[titulo] || { images: [], videoName: "", videoFile: null, instructions: [] };
+  renderTutorialsList();
+};
+
+function renomearTutorial(i) {
+  const sw = state.softwares[curSoftwareIdx];
+  const antigo = sw.tutorials[i];
+  const novo = prompt("Novo título:", antigo);
+  if (!novo || novo === antigo) return;
+  if (sw.tutorials.includes(novo)) { toast("Já existe um item com esse título.", "erro"); return; }
+  sw.tutorials[i] = novo;
+  details[novo] = details[antigo] || { images: [], videoName: "", videoFile: null, instructions: [] };
+  if (novo !== antigo) delete details[antigo];
+  renderTutorialsList();
+}
+
+/* ======================================================================
+   TELA 3 — PASSO A PASSO DE UM TUTORIAL (imagens, vídeo, instruções)
+====================================================================== */
+
+function openDetailView(title) {
+  curTutorialTitle = title;
+  details[title] = details[title] || { images: [], videoName: "", videoFile: null, instructions: [] };
+  $("dvTitle").textContent = title;
+  renderDetail();
+  show("view-detail");
+}
+$("btnBackDetail").onclick = () => { renderTutorialsList(); show("view-tutorials"); };
+
+function renderDetail() {
+  const d = details[curTutorialTitle];
+
+  // imagens
+  const imgsEl = $("detailImages");
+  imgsEl.innerHTML = d.images.length ? d.images.map((im, i) => `
+    <li class="row imgrow">
+      <span class="thumb">${im.file ? `<img src="${URL.createObjectURL(im.file)}">` : "📄"}</span>
+      <div class="rowtxt">
+        <input type="text" class="caption" data-cap="${i}" placeholder="Legenda da imagem" value="${escapeHtml(im.caption)}">
+        <small>${escapeHtml(im.name)}${!im.file ? " · arquivo não anexado nesta sessão" : ""}</small>
+      </div>
+      <span class="rowbtns">
+        <button data-imgup="${i}">▲</button>
+        <button data-imgdown="${i}">▼</button>
+        <button data-imgdel="${i}" class="danger">🗑️</button>
+      </span>
+    </li>
+  `).join("") : `<p class="vazio">Nenhuma imagem ainda.</p>`;
+
+  imgsEl.querySelectorAll("[data-cap]").forEach((el) =>
+    el.addEventListener("input", (e) => { d.images[Number(el.dataset.cap)].caption = e.target.value; }));
+  imgsEl.querySelectorAll("[data-imgup]").forEach((el) =>
+    el.addEventListener("click", () => moverItem(d.images, Number(el.dataset.imgup), -1, renderDetail)));
+  imgsEl.querySelectorAll("[data-imgdown]").forEach((el) =>
+    el.addEventListener("click", () => moverItem(d.images, Number(el.dataset.imgdown), 1, renderDetail)));
+  imgsEl.querySelectorAll("[data-imgdel]").forEach((el) =>
+    el.addEventListener("click", () => { d.images.splice(Number(el.dataset.imgdel), 1); renderDetail(); }));
+
+  // vídeo
+  $("detailVideo").innerHTML = d.videoName
+    ? `<div class="row">
+         <span class="thumb">🎬</span>
+         <div class="rowtxt"><b>${escapeHtml(d.videoName)}</b><small>${d.videoFile ? "arquivo anexado" : "arquivo não anexado nesta sessão"}</small></div>
+         <span class="rowbtns"><button id="btnRemVideo" class="danger">🗑️</button></span>
+       </div>`
+    : `<p class="vazio">Nenhum vídeo anexado.</p>`;
+  const btnRemVideo = $("btnRemVideo");
+  if (btnRemVideo) btnRemVideo.onclick = () => { d.videoName = ""; d.videoFile = null; renderDetail(); };
+
+  // instruções
+  const insEl = $("detailInstructions");
+  insEl.innerHTML = d.instructions.length ? d.instructions.map((ins, i) => `
+    <li class="row">
+      <span class="num">${i + 1}</span>
+      <textarea class="insttxt" data-ins="${i}" rows="2">${escapeHtml(ins)}</textarea>
+      <span class="rowbtns">
+        <button data-insup="${i}">▲</button>
+        <button data-insdown="${i}">▼</button>
+        <button data-insdel="${i}" class="danger">🗑️</button>
+      </span>
+    </li>
+  `).join("") : `<p class="vazio">Nenhum passo cadastrado ainda.</p>`;
+
+  insEl.querySelectorAll("[data-ins]").forEach((el) =>
+    el.addEventListener("input", (e) => { d.instructions[Number(el.dataset.ins)] = e.target.value; }));
+  insEl.querySelectorAll("[data-insup]").forEach((el) =>
+    el.addEventListener("click", () => moverItem(d.instructions, Number(el.dataset.insup), -1, renderDetail)));
+  insEl.querySelectorAll("[data-insdown]").forEach((el) =>
+    el.addEventListener("click", () => moverItem(d.instructions, Number(el.dataset.insdown), 1, renderDetail)));
+  insEl.querySelectorAll("[data-insdel]").forEach((el) =>
+    el.addEventListener("click", () => { d.instructions.splice(Number(el.dataset.insdel), 1); renderDetail(); }));
+}
+
+$("btnAddImagens").onclick = () => $("inputImagens").click();
+$("inputImagens").addEventListener("change", (e) => {
+  const d = details[curTutorialTitle];
+  [...e.target.files].forEach((f) => d.images.push({ name: f.name, caption: "", file: f }));
+  e.target.value = "";
+  renderDetail();
+});
+
+$("btnAddVideo").onclick = () => $("inputVideo").click();
+$("inputVideo").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const d = details[curTutorialTitle];
+  d.videoName = f.name; d.videoFile = f;
+  e.target.value = "";
+  renderDetail();
+});
+
+$("btnAddInstrucao").onclick = () => {
+  const d = details[curTutorialTitle];
+  d.instructions.push("");
+  renderDetail();
+  const areas = $("detailInstructions").querySelectorAll("textarea");
+  areas[areas.length - 1]?.focus();
+};
+
+/* ======================================================================
+   GERAR script.js (dados + motor de execução original, inalterado)
+====================================================================== */
+
+function gerarScriptJS() {
+  const blocoSoftwares = state.softwares.map((sw) => `{
+id: ${JSON.stringify(sw.id)},
+icon: ${JSON.stringify(sw.iconName || "")},
+name: ${JSON.stringify(sw.name)},
+description: ${JSON.stringify(sw.description)},
+tutorials: [
+${sw.tutorials.map((t) => JSON.stringify(t)).join(",\n")}
+]
+}`).join(",\n\n");
+
+  const todosTitulos = state.softwares.flatMap((sw) => sw.tutorials);
+  const blocoDetalhes = todosTitulos.map((title) => {
+    const d = details[title] || { images: [], videoName: "", instructions: [] };
+    const imgs = d.images.map((im) => `    { src: ${JSON.stringify(im.name)}, caption: ${JSON.stringify(im.caption || "")} }`).join(",\n");
+    const instr = d.instructions.map((i) => JSON.stringify(i)).join(",\n    ");
+    return `  ${JSON.stringify(title)}: {
+    images: [
+${imgs}
+    ],
+    video: ${JSON.stringify(d.videoName || "")},
+    instructions: [
+    ${instr}
+    ]
+  }`;
+  }).join(",\n\n");
+
+  return `/* =====================================================
+   BASE DE DADOS DOS SOFTWARES
+   Para adicionar novos softwares basta inserir
+   novos objetos neste array.
+===================================================== */
+
+const softwares = [
+
+${blocoSoftwares}
+
+];
+
+// Conteúdo individual de cada tela de instrução.
+const tutorialDetails = {
+${blocoDetalhes}
+};
+
+${atob(RUNTIME_B64)}`;
+}
+
+/* ======================================================================
+   EXPORTAR PACOTE (index.html + style.css + script.js + arquivos de mídia)
+====================================================================== */
+
+async function exportarZip() {
+  if (!state.softwares.length) { toast("Cadastre pelo menos um software antes de exportar.", "erro"); return; }
+  if (typeof JSZip === "undefined") { toast("Não foi possível carregar o JSZip — verifique sua internet.", "erro"); return; }
+
+  toast("Montando o pacote...");
+  const zip = new JSZip();
+  zip.file("index.html", atob(INDEX_B64));
+  zip.file("style.css", atob(STYLE_B64));
+  zip.file("script.js", gerarScriptJS());
+
+  const usados = new Set(["index.html", "style.css", "script.js"]);
+  let faltando = [];
+
+  state.softwares.forEach((sw) => {
+    if (sw.iconFile) zip.file(nomeUnico(sw.iconName, usados), sw.iconFile);
+    else if (sw.iconName) faltando.push(sw.iconName);
+  });
+  Object.values(details).forEach((d) => {
+    d.images.forEach((im) => {
+      if (im.file) zip.file(nomeUnico(im.name, usados), im.file);
+      else if (im.name) faltando.push(im.name);
+    });
+    if (d.videoFile) zip.file(nomeUnico(d.videoName, usados), d.videoFile);
+    else if (d.videoName) faltando.push(d.videoName);
+  });
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "tutorial-exportado.zip";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+  if (faltando.length) {
+    toast(`ZIP baixado, mas ${faltando.length} arquivo(s) não foram incluídos (veja a Ajuda).`, "erro");
+    console.warn("Arquivos referenciados sem o binário anexado nesta sessão:", faltando);
+  } else {
+    toast("ZIP baixado com sucesso! 🎉");
+  }
+}
+$("btnExportar").onclick = exportarZip;
+
+/* ======================================================================
+   ABRIR script.js EXISTENTE (para editar/atualizar)
+====================================================================== */
+
+function carregarScriptExistente(texto) {
+  try {
+    // Só avaliamos a parte de DADOS do arquivo (antes do motor de execução),
+    // identificada pelo marcador usado por esta ferramenta e pelo modelo original.
+    const dataOnly = texto.includes("let currentSoftware")
+      ? texto.split("let currentSoftware")[0]
+      : texto;
+
+    const fn = new Function(
+      dataOnly + `
+      return {
+        softwares: typeof softwares !== "undefined" ? softwares : [],
+        tutorialDetails: typeof tutorialDetails !== "undefined" ? tutorialDetails : {}
+      };`
+    );
+    const dados = fn();
+
+    state.softwares = (dados.softwares || []).map((sw) => ({
+      id: sw.id || "", name: sw.name || "", description: sw.description || "",
+      iconName: sw.icon || "", iconFile: null,
+      tutorials: Array.isArray(sw.tutorials) ? [...sw.tutorials] : [],
+    }));
+
+    details = {};
+    Object.entries(dados.tutorialDetails || {}).forEach(([title, d]) => {
+      details[title] = {
+        images: (d.images || []).map((im) => ({ name: im.src || "", caption: im.caption || "", file: null })),
+        videoName: d.video || "", videoFile: null,
+        instructions: Array.isArray(d.instructions) ? [...d.instructions] : [],
+      };
+    });
+
+    renderSoftwareList();
+    show("view-software");
+    toast("script.js carregado! As imagens/vídeo precisam ser reanexados se quiser incluí-los no próximo export.");
+  } catch (erro) {
+    console.error(erro);
+    toast("Não consegui ler esse script.js. Ele segue o formato esperado?", "erro");
+  }
+}
+
+$("btnAbrirScript").onclick = () => $("inputAbrirScript").click();
+$("inputAbrirScript").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => carregarScriptExistente(String(reader.result));
+  reader.readAsText(f, "utf-8");
+  e.target.value = "";
+});
+
+/* ======================================================================
+   IMPORTAR / EXPORTAR JSON (modo "em lote", a versão realista do
+   "apontar a pasta e preencher sozinho": você prepara um .json com os
+   dados e esta ferramenta preenche tudo de uma vez)
+====================================================================== */
+
+function modeloJSON() {
+  return {
+    softwares: [{
+      id: "CONTINGENCIA 1", name: "01 VÍDEO - CONTINGÊNCIA 1",
+      description: "Reinício da Urna Eletrônica (U.E.) com defeito.",
+      icon: "icone-01-contingencia-1.png",
+      tutorials: ["Como REINICIAR A URNA ELETRÔNICA (U.E.)."],
+    }],
+    tutorialDetails: {
+      "Como REINICIAR A URNA ELETRÔNICA (U.E.).": {
+        images: [{ src: "01 - REINICIAR - 01.png", caption: "Passo 2 - Desligar a urna." }],
+        video: "01-reiniciar-urna.mp4",
+        instructions: ["Desligue a urna.", "Aguarde 10 segundos.", "Religue a urna."],
+      },
+    },
+  };
+}
+
+$("btnModeloJSON").onclick = () => {
+  const blob = new Blob([JSON.stringify(modeloJSON(), null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "modelo-tutorial.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+};
+
+$("btnImportarJSON").onclick = () => $("inputImportarJSON").click();
+$("inputImportarJSON").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const dados = JSON.parse(String(reader.result));
+      (dados.softwares || []).forEach((sw) => {
+        if (state.softwares.some((s) => s.id === sw.id)) return; // não duplica
+        state.softwares.push({
+          id: sw.id || "", name: sw.name || "", description: sw.description || "",
+          iconName: sw.icon || "", iconFile: null,
+          tutorials: Array.isArray(sw.tutorials) ? [...sw.tutorials] : [],
+        });
+      });
+      Object.entries(dados.tutorialDetails || {}).forEach(([title, d]) => {
+        details[title] = {
+          images: (d.images || []).map((im) => ({ name: im.src || "", caption: im.caption || "", file: null })),
+          videoName: d.video || "", videoFile: null,
+          instructions: Array.isArray(d.instructions) ? [...d.instructions] : [],
+        };
+      });
+      renderSoftwareList();
+      show("view-software");
+      toast("JSON importado! Anexe as imagens/vídeo manualmente se quiser incluí-los no export.");
+    } catch (erro) {
+      console.error(erro);
+      toast("Esse arquivo não é um JSON válido no formato esperado.", "erro");
+    }
+  };
+  reader.readAsText(f, "utf-8");
+  e.target.value = "";
+});
+
+/* ---------- ajuda ---------- */
+$("btnAjuda").onclick = () => abrirModal(document.getElementById("ajudaConteudo").innerHTML + `<button class="save" onclick="fecharModal()">Entendi</button>`);
+window.fecharModal = fecharModal;
+
+/* ---------- início ---------- */
+renderSoftwareList();
+
+</script>
+</body>
+</html>
